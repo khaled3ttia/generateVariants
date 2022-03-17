@@ -8,8 +8,8 @@ cwd = os.getcwd()
 # Change to the PPCG root directory
 ppcg_dir = '/home/khaled/Documents/ppcg'
 
-'''
-    Many of these flags are enabled by default according to ppcg --help
+
+    #Many of these flags are enabled by default according to ppcg --help
 
 flags = [
             'tile',
@@ -17,8 +17,8 @@ flags = [
             'no-scale-tile-loops',                      # enabled by default
             'openmp',
             'isl-coalesce-preserve-locals',
-            'no-isl-schedule-parametrice',              # enabled by default
-            'no-isl-schedule-outer-coincedence',        # enabled by default
+            'no-isl-schedule-parametric',              # enabled by default
+            'no-isl-schedule-outer-coincidence',        # enabled by default
             'no-isl-schedule-maximize-band-depth',      # enabled by default
             'no-isl-schedule-separate-components',      # enabled by default
             'isl-schedule-whole-component',             # enabled by default
@@ -29,8 +29,8 @@ flags = [
             'no-isl-ast-build-exploit-nested-bounds',   # enabled by default
             'no-isl-ast-build-scale-strides'            # enabled by default
         ]
-'''
 
+'''
 flags = [
             'tile',
             'openmp',
@@ -40,7 +40,7 @@ flags = [
             'isl-schedule-serialize-sccs'
         ]
 
-
+'''
 # function to execute unix commands
 def execute_cmd(cmd, directory):
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, cwd=directory)
@@ -56,6 +56,11 @@ def generate():
     # map filename to flags used
     # could be useful to find out which flags were applied to a generate a file
     name_to_cmd = {}
+
+
+    # keep track of them to remove them later
+    generated_with_errors = []
+
     for L in range(1, len(flags)+1):
         for subset in itertools.combinations(flags, L):
             command = f"{ppcg_dir}/ppcg --pet-autodetect=yes --target=c "
@@ -75,10 +80,17 @@ def generate():
             rc, out, err = execute_cmd(command, cwd)
 
             #save logs of outputs and errors (if needed, uncomment)
-            #with open(f'{cwd}/logs/{ncomb+1}.log','w') as fd:
-            #    fd.write(out)
-            #with open(f'{cwd}/errs/{ncomb+1}.err','w') as fd:
-            #    fd.write(err)
+            if len(out) > 2:
+                with open(f'{cwd}/logs/{ncomb+1}.log','w') as fd:
+                    fd.write(f'{command}\n')
+                    fd.write(out)
+            if len(err) > 2:
+
+                generated_with_errors.append(ncomb+1)
+                
+                with open(f'{cwd}/errs/{ncomb+1}.err','w') as fd:
+                    fd.write(f'{command}\n')
+                    fd.write(err)
 
             print('==========')
 
@@ -88,6 +100,15 @@ def generate():
     # save file name to command dictionary
     with open('cmdMap.pk', 'wb') as fd:
         pickle.dump(name_to_cmd, fd)
+
+
+    # delete files generated with errors because they will not be
+    # complete
+    print('Deleting variants that triggered a ppcg error...')
+    for file_num in generated_with_errors:
+        delete_err_cmd = f'rm chemv_{file_num}.c'
+        delete_err_dir = cwd + '/output'
+        rc, out, err = execute_cmd(delete_err_cmd, delete_err_dir)
 
     # delete duplicate files using fdupes
     # fdupes can be easily installed on ubuntu using:
