@@ -22,7 +22,7 @@ flags = [
             'no-isl-schedule-maximize-band-depth',      # enabled by default
             'no-isl-schedule-separate-components',      # enabled by default
             'isl-schedule-whole-component',             # enabled by default
-            'isl-schedule-algorithm=feautrier',
+            #'isl-schedule-algorithm=feautrier',        causing error
             'isl-schedule-serialize-sccs',
             'no-isl-tile-scale-tile-loops',             # enabled by default
             'no-isl-tile-shift-point-loops',            # enabled by default
