@@ -61,7 +61,7 @@ def generate():
     # keep track of them to remove them later
     generated_with_errors = []
 
-    for L in range(1, len(flags)+1):
+    for L in range(0, len(flags)+1):
         for subset in itertools.combinations(flags, L):
             command = f"{ppcg_dir}/ppcg --pet-autodetect=yes --target=c "
             cmd_flags = ''
